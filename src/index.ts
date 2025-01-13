@@ -186,11 +186,15 @@ app.onError((err: Error, c) => {
 class SSEToStream extends TransformStream<Uint8Array, string> {
 	private decoder = new TextDecoder();
 	private buffer = '';
+	private fullResponse = '';
 
 	constructor() {
 		super({
 			transform: (chunk: Uint8Array, controller: TransformStreamDefaultController<string>) => this.processChunk(chunk, controller),
-			flush: (controller: TransformStreamDefaultController<string>) => controller.enqueue(this.format({ done: true })),
+			flush: (controller: TransformStreamDefaultController<string>) => {
+				controller.enqueue(this.format({ done: true }));
+				console.log('Complete response:', this.fullResponse);
+			},
 		});
 	}
 
@@ -206,6 +210,9 @@ class SSEToStream extends TransformStream<Uint8Array, string> {
 				const data = line.slice(5).trim();
 				try {
 					const jsonData = JSON.parse(data);
+					if (jsonData.response !== undefined) {
+						this.fullResponse += jsonData.response;
+					}
 					controller.enqueue(this.format(jsonData));
 				} catch (e) {
 					console.warn('Failed to parse JSON:', data);
