@@ -200,9 +200,7 @@ class SSEToStream extends TransformStream<Uint8Array, string> {
 
 	private processChunk(chunk: Uint8Array, controller: TransformStreamDefaultController<string>): void {
 		this.buffer += this.decoder.decode(chunk, { stream: true });
-
 		const lines = this.buffer.split('\n');
-
 		this.buffer = lines.pop() || '';
 
 		lines.forEach((line) => {
